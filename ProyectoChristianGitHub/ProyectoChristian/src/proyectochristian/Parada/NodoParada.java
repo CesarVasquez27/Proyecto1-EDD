@@ -11,10 +11,12 @@ package proyectochristian.Parada;
 public class NodoParada {
     private String nombreParada;  // Nombre de la parada
     private NodoParada pNext;  // Puntero al siguiente nodo
-
+    private NodoParada pFirst; // Puntero a la cabeza de la lista
+    
     public NodoParada() {
         this.nombreParada =  null;
         this.pNext = null;
+        this.pFirst= null;
     }
 
     public NodoParada(String nombreParada) {
@@ -46,6 +48,17 @@ public class NodoParada {
     public String toString() {
         return "Parada: " + nombreParada;
     }
+    public NodoParada buscar(String nombre) {
+    NodoParada aux = pFirst;
+    while (aux != null) {
+        if (aux.getNombreParada().equals(nombre)) {
+            return aux;
+        }
+        aux = aux.getpNext();
+    }
+    return null; // No encontrado
+}
+
     
 }
     
