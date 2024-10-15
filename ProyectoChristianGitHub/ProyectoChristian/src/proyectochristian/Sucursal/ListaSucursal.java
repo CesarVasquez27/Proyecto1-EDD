@@ -6,7 +6,7 @@ package proyectochristian.Sucursal;
 
 /**
  *
- * @author Dell
+ * @author Christian
  */
 public class ListaSucursal {
     private NodoSucursal pFirts;
