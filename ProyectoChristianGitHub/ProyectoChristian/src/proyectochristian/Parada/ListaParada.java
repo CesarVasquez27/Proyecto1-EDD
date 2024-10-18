@@ -9,20 +9,20 @@ package proyectochristian.Parada;
  * @author Christian
  */
 public class ListaParada {
-    private NodoParada pFirts;
+    private NodoParada pFirst;
     private int size;
 
     public ListaParada() {
-        this.pFirts = null;
+        this.pFirst = null;
         this.size = 0;
     }
 
-    public NodoParada getpFirts() {
-        return pFirts;
+    public NodoParada getpFirst() {
+        return pFirst;
     }
 
-    public void setpFirts(NodoParada pFirts) {
-        this.pFirts = pFirts;
+    public void setpFirst(NodoParada pFirst) {
+        this.pFirst = pFirst;
     }
 
     public int getSize() {
@@ -34,18 +34,18 @@ public class ListaParada {
     }
     
     public boolean isEmpty(){
-        return pFirts==null;
+        return pFirst==null;
     }
     
     public void agregar(String nombreParada){
         NodoParada pNew=new NodoParada(nombreParada);
         if (this.isEmpty()){
-            this.setpFirts(pNew);
+            this.setpFirst(pNew);
         }else{
             if(size==1){
-            this.pFirts.setpNext(pNew);
+            this.pFirst.setpNext(pNew);
             }else{
-                NodoParada aux=pFirts;
+                NodoParada aux=pFirst;
                 while(aux.getpNext()!=null){
                     aux=aux.getpNext();
                 }
@@ -58,7 +58,7 @@ public class ListaParada {
     
     public void print(){
         if (!isEmpty()){
-            NodoParada aux=pFirts;
+            NodoParada aux=pFirst;
             while(aux!=null){
                 System.out.println(aux.getNombreParada());
                 aux=aux.getpNext();}
