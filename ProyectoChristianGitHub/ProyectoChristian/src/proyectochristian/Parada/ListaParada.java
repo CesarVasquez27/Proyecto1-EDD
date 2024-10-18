@@ -66,6 +66,17 @@ public class ListaParada {
             System.out.println("Lista Vacia");
         }}
     
+    public NodoParada buscarParada(String nombreParada) {
+        NodoParada actual = pFirst;
+        while (actual != null) {
+            if (actual.getNombreParada().equals(nombreParada)) {
+                return actual;  // Parada encontrada
+            }
+            actual = actual.getpNext();
+        }
+        return null;  // Parada no encontrada
+    }
+    
     
 }    
     
