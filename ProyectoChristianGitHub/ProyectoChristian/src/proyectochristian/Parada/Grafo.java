@@ -3,82 +3,94 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package proyectochristian.Parada;
+import org.graphstream.graph.*;
+import org.graphstream.graph.implementations.SingleGraph;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 /**
  *
  * @author Cesar Augusto
  */
 public class Grafo {
-    private final Map<String, ListaParada> redTransporte; // Mapa que almacena paradas y sus conexiones
+    private final Map<String, List<String>> redTransporte; // Mapa línea -> lista de paradas
 
     // Constructor
     public Grafo() {
         this.redTransporte = new HashMap<>();
     }
 
-    // Método para cargar la red de transporte desde un archivo JSON
+    // Método para cargar varios archivos JSON
+    public void cargarDesdeArchivos(List<File> archivos) {
+        for (File archivo : archivos) {
+            cargarDesdeArchivo(archivo);  // Cargar cada archivo individualmente
+        }
+    }
+
+    // Método para cargar un archivo JSON
     public void cargarDesdeArchivo(File archivo) {
         if (archivo == null || !archivo.exists()) {
-            System.err.println("El archivo especificado no existe o es nulo.");
+            System.err.println("El archivo especificado no existe o es nulo: " + archivo.getName());
             return;
         }
 
         try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
             Gson gson = new Gson();
-            // Definimos el tipo de datos que esperamos recibir del JSON
             Type tipo = new TypeToken<Map<String, List<Map<String, List<Object>>>>>() {}.getType();
             Map<String, List<Map<String, List<Object>>>> data = gson.fromJson(br, tipo);
 
-            // Procesar los datos del archivo JSON
+            // Procesar datos del JSON
             for (String nombreRed : data.keySet()) {
                 List<Map<String, List<Object>>> lineas = data.get(nombreRed);
                 for (Map<String, List<Object>> linea : lineas) {
                     for (String nombreLinea : linea.keySet()) {
                         List<Object> paradas = linea.get(nombreLinea);
-                        ListaParada listaParadas = new ListaParada();
+
+                        // Si la línea no existe en el mapa, la creamos
+                        redTransporte.putIfAbsent(nombreLinea, new ArrayList<>());
+
+                        // Agregar paradas a la línea
                         for (Object parada : paradas) {
-                            // Manejo de conexiones peatonales
                             if (parada instanceof String) {
-                                listaParadas.agregar((String) parada);
+                                redTransporte.get(nombreLinea).add((String) parada);
                             } else if (parada instanceof Map) {
                                 for (Map.Entry<String, String> entry : ((Map<String, String>) parada).entrySet()) {
-                                    listaParadas.agregar(entry.getKey());
-                                    listaParadas.agregar(entry.getValue());
+                                    redTransporte.get(nombreLinea).add(entry.getKey());
+                                    redTransporte.get(nombreLinea).add(entry.getValue());
                                 }
                             }
                         }
-                        redTransporte.put(nombreLinea, listaParadas);
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("Error: Archivo no encontrado. Asegúrate de que la ruta sea correcta.");
-        } catch (JsonSyntaxException e) {
-            System.err.println("Error: La sintaxis del archivo JSON no es válida.");
         } catch (IOException e) {
-            System.err.println("Error: Ocurrió un error de entrada/salida al leer el archivo.");
+            System.err.println("Error al leer el archivo: " + e.getMessage());
         } catch (ClassCastException e) {
-            System.err.println("Error: Tipo de dato no válido encontrado en el archivo JSON.");
+            System.err.println("Error: Tipo de dato inválido en el JSON.");
         }
     }
 
-    // Método para mostrar el grafo
+    // Método para mostrar el grafo usando GraphStream
     public void mostrarGrafo() {
+        Graph graph = new SingleGraph("Red de Transporte");
+        graph.setStrict(false);
+        graph.setAutoCreate(true);
+
+        // Crear los nodos y las conexiones (aristas)
         for (String linea : redTransporte.keySet()) {
-            System.out.println("Línea: " + linea);
-            redTransporte.get(linea).print(); // Imprimir las paradas de la línea
+            List<String> paradas = redTransporte.get(linea);
+            for (int i = 0; i < paradas.size() - 1; i++) {
+                String origen = paradas.get(i);
+                String destino = paradas.get(i + 1);
+
+                // Crear aristas entre paradas consecutivas
+                graph.addEdge(origen + "-" + destino, origen, destino, true);
+            }
         }
+
+        // Estilo visual del grafo
+        graph.display();
     }
-    
 }
