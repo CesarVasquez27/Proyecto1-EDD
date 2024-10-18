@@ -9,20 +9,20 @@ package proyectochristian.Parada;
  * @author Christian
  */
 public class ListaParada {
-    private NodoParada pFirst;
+    private NodoParada pFirts;
     private int size;
 
     public ListaParada() {
-        this.pFirst = null;
+        this.pFirts = null;
         this.size = 0;
     }
 
-    public NodoParada getpFirst() {
-        return pFirst;
+    public NodoParada getpFirts() {
+        return pFirts;
     }
 
-    public void setpFirst(NodoParada pFirst) {
-        this.pFirst = pFirst;
+    public void setpFirts(NodoParada pFirts) {
+        this.pFirts = pFirts;
     }
 
     public int getSize() {
@@ -34,18 +34,18 @@ public class ListaParada {
     }
     
     public boolean isEmpty(){
-        return pFirst==null;
+        return pFirts==null;
     }
     
     public void agregar(String nombreParada){
         NodoParada pNew=new NodoParada(nombreParada);
         if (this.isEmpty()){
-            this.setpFirst(pNew);
+            this.setpFirts(pNew);
         }else{
             if(size==1){
-            this.pFirst.setpNext(pNew);
+            this.pFirts.setpNext(pNew);
             }else{
-                NodoParada aux=pFirst;
+                NodoParada aux=pFirts;
                 while(aux.getpNext()!=null){
                     aux=aux.getpNext();
                 }
@@ -58,25 +58,13 @@ public class ListaParada {
     
     public void print(){
         if (!isEmpty()){
-            NodoParada aux=pFirst;
+            NodoParada aux=pFirts;
             while(aux!=null){
                 System.out.println(aux.getNombreParada());
                 aux=aux.getpNext();}
         }else{
             System.out.println("Lista Vacia");
         }}
-    
-    public NodoParada buscarParada(String nombreParada) {
-        NodoParada actual = pFirst;
-        while (actual != null) {
-            if (actual.getNombreParada().equals(nombreParada)) {
-                return actual;  // Parada encontrada
-            }
-            actual = actual.getpNext();
-        }
-        return null;  // Parada no encontrada
-    }
-
     
     
 }    
