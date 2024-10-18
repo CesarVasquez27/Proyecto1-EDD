@@ -40,7 +40,7 @@ public class ListaParada {
     public void agregar(String nombreParada){
         NodoParada pNew=new NodoParada(nombreParada);
         if (this.isEmpty()){
-            this.setpFirts(pNew);
+            this.setpFirst(pNew);
         }else{
             if(size==1){
             this.pFirst.setpNext(pNew);
