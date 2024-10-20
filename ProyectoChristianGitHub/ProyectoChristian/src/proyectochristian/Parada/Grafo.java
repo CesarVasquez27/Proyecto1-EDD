@@ -12,34 +12,91 @@ import org.graphstream.graph.implementations.SingleGraph;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
+import proyectochristian.Sucursal.ListaSucursal;
+import proyectochristian.Sucursal.NodoSucursal;
 
 public class Grafo {
-    private final Map<String, ListaParada> redTransporte; // Mapa línea -> lista de paradas
-    private final Map<String, String> conexionesPeatonales; // Para conexiones peatonales
+    private final Map<String, ListaParada> redTransporte; // Línea -> lista de paradas
+    private final Map<String, String> conexionesPeatonales; // Conexiones peatonales
+    private final ListaSucursal sucursales;  // Lista enlazada de sucursales
+    private int t = 3;  // Valor de t por defecto
 
     // Constructor
     public Grafo() {
-        this.redTransporte = new HashMap<>();  // Ahora usa ListaParada
-        this.conexionesPeatonales = new HashMap<>();  // Almacena conexiones peatonales
+        this.redTransporte = new HashMap<>();
+        this.conexionesPeatonales = new HashMap<>();
+        this.sucursales = new ListaSucursal();  // Inicializa lista enlazada de sucursales
     }
 
-    // Método para cargar una nueva red de transporte (reemplaza la anterior)
+    // Cambiar el valor de 't'
+    public void setT(int nuevoT) {
+        this.t = nuevoT;
+        System.out.println("El valor de 't' se ha actualizado a: " + nuevoT);
+    }
+
+    // Colocar una nueva sucursal en una parada
+    public void colocarSucursal(String parada) {
+        if (!existeSucursal(parada)) {
+            sucursales.agregar(parada);
+            System.out.println("Sucursal colocada en: " + parada);
+        } else {
+            System.out.println("La sucursal ya está colocada en: " + parada);
+        }
+    }
+
+    // Eliminar una sucursal de una parada
+    public void eliminarSucursal(String parada) {
+        NodoSucursal anterior = null;
+        NodoSucursal actual = sucursales.getpFirts();
+
+        while (actual != null) {
+            if (actual.getNombreSucursal().equals(parada)) {
+                if (anterior == null) {
+                    sucursales.setpFirts(actual.getpNext());
+                } else {
+                    anterior.setpNext(actual.getpNext());
+                }
+                sucursales.setSize(sucursales.getSize() - 1);
+                System.out.println("Sucursal eliminada de: " + parada);
+                return;
+            }
+            anterior = actual;
+            actual = actual.getpNext();
+        }
+        System.out.println("No se encontró ninguna sucursal en: " + parada);
+    }
+
+    // Verificar si existe una sucursal en una parada
+    private boolean existeSucursal(String parada) {
+        NodoSucursal actual = sucursales.getpFirts();
+        while (actual != null) {
+            if (actual.getNombreSucursal().equals(parada)) {
+                return true;
+            }
+            actual = actual.getpNext();
+        }
+        return false;
+    }
+
+    // Imprimir todas las sucursales colocadas
+    public void imprimirSucursales() {
+        System.out.println("Sucursales colocadas:");
+        sucursales.print();
+    }
+
+    // Cargar red de transporte desde archivo JSON
     public void cargarNuevaRedDesdeArchivo(File archivo) {
-        // Limpiar la red anterior
         redTransporte.clear();
-        conexionesPeatonales.clear();  // Limpiar las conexiones peatonales también
+        conexionesPeatonales.clear();
         System.out.println("Red de transporte anterior eliminada. Cargando nueva red...");
-
-        // Cargar la nueva red desde el archivo
         cargarDesdeArchivo(archivo);
-
-        System.out.println("Nueva red de transporte cargada desde el archivo: " + archivo.getName());
+        System.out.println("Nueva red cargada desde: " + archivo.getName());
     }
 
-    // Método para cargar un archivo JSON
-    public void cargarDesdeArchivo(File archivo) {
+    // Leer y procesar archivo JSON
+    private void cargarDesdeArchivo(File archivo) {
         if (archivo == null || !archivo.exists()) {
-            System.err.println("El archivo especificado no existe o es nulo: " + archivo.getName());
+            System.err.println("Archivo inválido: " + archivo.getName());
             return;
         }
 
@@ -48,53 +105,36 @@ public class Grafo {
             Type tipo = new TypeToken<Map<String, List<Map<String, List<Object>>>>>() {}.getType();
             Map<String, List<Map<String, List<Object>>>> data = gson.fromJson(br, tipo);
 
-            // Procesar datos del JSON
-            for (String nombreRed : data.keySet()) {
-                List<Map<String, List<Object>>> lineas = data.get(nombreRed);
+            for (String red : data.keySet()) {
+                List<Map<String, List<Object>>> lineas = data.get(red);
                 for (Map<String, List<Object>> linea : lineas) {
                     for (String nombreLinea : linea.keySet()) {
-                        List<Object> paradas = linea.get(nombreLinea);
-
-                        // Si la línea no existe en el mapa, la creamos
                         redTransporte.putIfAbsent(nombreLinea, new ListaParada());
-
-                        // Agregar paradas a la línea usando tu clase ListaParada
-                        for (Object parada : paradas) {
+                        for (Object parada : linea.get(nombreLinea)) {
                             if (parada instanceof String) {
-                                redTransporte.get(nombreLinea).agregar((String) parada);  // Usar el método agregar
+                                redTransporte.get(nombreLinea).agregar((String) parada);
                             } else if (parada instanceof Map) {
-                                // Conexión peatonal {"Parada1":"Parada2"}
                                 for (Map.Entry<String, String> entry : ((Map<String, String>) parada).entrySet()) {
-                                    String parada1 = entry.getKey();
-                                    String parada2 = entry.getValue();
-
-                                    // Añadir ambas paradas a la línea
-                                    redTransporte.get(nombreLinea).agregar(parada1);
-                                    redTransporte.get(nombreLinea).agregar(parada2);
-
-                                    // Guardar la conexión peatonal (unión entre ambas paradas)
-                                    conexionesPeatonales.put(parada1, parada2);
-                                    conexionesPeatonales.put(parada2, parada1);
+                                    redTransporte.get(nombreLinea).agregar(entry.getKey());
+                                    redTransporte.get(nombreLinea).agregar(entry.getValue());
+                                    conexionesPeatonales.put(entry.getKey(), entry.getValue());
                                 }
                             }
                         }
                     }
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error al leer el archivo: " + e.getMessage());
-        } catch (ClassCastException e) {
-            System.err.println("Error: Tipo de dato inválido en el JSON.");
+        } catch (IOException | ClassCastException e) {
+            System.err.println("Error al cargar archivo: " + e.getMessage());
         }
     }
 
-    // Método para mostrar el grafo usando GraphStream
+    // Mostrar grafo usando GraphStream
     public void mostrarGrafo() {
         Graph graph = new SingleGraph("Red de Transporte");
         graph.setStrict(false);
         graph.setAutoCreate(true);
 
-        // Crear los nodos y las conexiones (aristas)
         for (String linea : redTransporte.keySet()) {
             ListaParada paradas = redTransporte.get(linea);
             NodoParada actual = paradas.getpFirst();
@@ -102,22 +142,64 @@ public class Grafo {
             while (actual != null && actual.getpNext() != null) {
                 String origen = actual.getNombreParada();
                 String destino = actual.getpNext().getNombreParada();
-
-                // Verificar si origen y destino tienen una conexión peatonal
-                if (conexionesPeatonales.containsKey(origen) && conexionesPeatonales.get(origen).equals(destino)) {
-                    destino = conexionesPeatonales.get(origen);  // Unificar las paradas
-                }
-
-                // Crear aristas entre paradas consecutivas
                 if (!origen.equals(destino)) {
                     graph.addEdge(origen + "-" + destino, origen, destino, true);
                 }
-
                 actual = actual.getpNext();
             }
         }
-
-        // Estilo visual del grafo
         graph.display();
+    }
+
+    // Obtener paradas adyacentes
+    private List<String> obtenerAdyacentes(String parada) {
+        List<String> adyacentes = new ArrayList<>();
+        for (ListaParada linea : redTransporte.values()) {
+            NodoParada actual = linea.getpFirst();
+            while (actual != null) {
+                if (actual.getNombreParada().equals(parada) && actual.getpNext() != null) {
+                    adyacentes.add(actual.getpNext().getNombreParada());
+                }
+                actual = actual.getpNext();
+            }
+        }
+        return adyacentes;
+    }
+
+    // Cobertura con BFS
+    public Set<String> coberturaBFS(String inicio) {
+        Set<String> visitadas = new HashSet<>();
+        Queue<String> cola = new LinkedList<>();
+        cola.add(inicio);
+        visitadas.add(inicio);
+
+        while (!cola.isEmpty()) {
+            String actual = cola.poll();
+            for (String adyacente : obtenerAdyacentes(actual)) {
+                if (!visitadas.contains(adyacente) && visitadas.size() < t) {
+                    visitadas.add(adyacente);
+                    cola.add(adyacente);
+                }
+            }
+        }
+        return visitadas;
+    }
+
+    // Cobertura con DFS
+    public Set<String> coberturaDFS(String inicio) {
+        Set<String> visitadas = new HashSet<>();
+        dfs(inicio, visitadas);
+        return visitadas;
+    }
+
+    private void dfs(String actual, Set<String> visitadas) {
+        if (visitadas.size() >= t) return;
+        visitadas.add(actual);
+
+        for (String adyacente : obtenerAdyacentes(actual)) {
+            if (!visitadas.contains(adyacente)) {
+                dfs(adyacente, visitadas);
+            }
+        }
     }
 }
