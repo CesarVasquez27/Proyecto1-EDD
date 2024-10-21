@@ -6,6 +6,7 @@ package proyectochristian.Parada;
  */
  //* @author Cesar Augusto
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.graphstream.graph.*;
@@ -45,40 +46,26 @@ public class Grafo {
         System.out.println("Nueva red cargada desde: " + archivo.getName());
     }
 
+    // Cargar la red desde un archivo JSON
     public void cargarDesdeArchivo(File archivo) {
         try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
             Gson gson = new Gson();
             JsonObject json = JsonParser.parseReader(br).getAsJsonObject();
 
-            for (String nombreRed : json.keySet()) {
-                JsonObject red = json.getAsJsonObject(nombreRed);
-                for (String nombreLinea : red.keySet()) {
-                    JsonElement paradasElement = red.get(nombreLinea);
+            for (String nombreLinea : json.keySet()) {
+                JsonElement paradasElement = json.get(nombreLinea);
+                if (paradasElement.isJsonArray()) {
+                    String paradaAnterior = null;
+                    for (JsonElement paradaElement : paradasElement.getAsJsonArray()) {
+                        String nombreParada = paradaElement.getAsString();
 
-                    if (paradasElement.isJsonArray()) {
-                        for (JsonElement paradaElement : paradasElement.getAsJsonArray()) {
-                            if (paradaElement.isJsonPrimitive()) {
-                                // Si es una parada normal
-                                String nombreParada = paradaElement.getAsString();
-                                if (listaParadas.buscarParada(nombreParada) == null) {  // Evita duplicados
-                                    listaParadas.agregar(nombreParada);
-                                }
-                            } else if (paradaElement.isJsonObject()) {
-                                // Si es una conexión peatonal
-                                JsonObject conexion = paradaElement.getAsJsonObject();
-                                for (String parada1 : conexion.keySet()) {
-                                    String parada2 = conexion.get(parada1).getAsString();
-                                    if (listaParadas.buscarParada(parada1) == null) {
-                                        listaParadas.agregar(parada1);
-                                    }
-                                    if (listaParadas.buscarParada(parada2) == null) {
-                                        listaParadas.agregar(parada2);
-                                    }
-                                    // Agrega la conexión
-                                    listaConexiones.agregar(parada1, parada2);
-                                }
-                            }
+                        if (listaParadas.buscarParada(nombreParada) == null) {
+                            listaParadas.agregar(nombreParada);
                         }
+                        if (paradaAnterior != null) {
+                            listaConexiones.agregar(paradaAnterior, nombreParada);
+                        }
+                        paradaAnterior = nombreParada;
                     }
                 }
             }
@@ -118,101 +105,64 @@ public class Grafo {
         }
     }
 
-   private void bfs(String nombreParada) {
-    // Suponiendo que tenemos un límite en el número máximo de paradas
-    final int MAX_PARADAS = 100; 
-    String[] visitadas = new String[MAX_PARADAS]; // Arreglo para marcar paradas visitadas
-    String[] cola = new String[MAX_PARADAS]; // Arreglo para simular la cola
-    int frente = 0; // Índice del frente de la cola
-    int fin = 0; // Índice del final de la cola
-    int nivel = 0; // Contador de niveles
+    private void bfs(String nombreParada) {
+        final int MAX_PARADAS = 100;
+        String[] visitadas = new String[MAX_PARADAS];
+        String[] cola = new String[MAX_PARADAS];
+        int frente = 0;
+        int fin = 0;
+        int nivel = 0;
+        cola[fin++] = nombreParada;
+        int numVisitadas = 0;
 
-    // Inicializamos la cola con la parada inicial
-    cola[fin++] = nombreParada; // Añadimos la parada inicial
-    int numVisitadas = 0; // Contador de paradas visitadas
+        while (frente < fin && nivel <= t) {
+            int size = fin - frente;
 
-    while (frente < fin && nivel <= t) {
-        int size = fin - frente; // Número de nodos en el nivel actual
+            for (int i = 0; i < size; i++) {
+                String paradaActual = cola[frente++];
+                System.out.println("Parada alcanzada: " + paradaActual);
+                visitadas[numVisitadas++] = paradaActual;
 
-        for (int i = 0; i < size; i++) {
-            String paradaActual = cola[frente++]; // Extraemos la parada del frente
-            System.out.println("Parada alcanzada: " + paradaActual);
-            visitadas[numVisitadas++] = paradaActual; // Marcamos la parada como visitada
-
-            NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
-            while (conexiones != null) {
-                String destino = conexiones.getDestino();
-
-                // Comprobamos si la parada ya ha sido visitada
-                boolean yaVisitada = false;
-                for (int j = 0; j < numVisitadas; j++) {
-                    if (visitadas[j].equals(destino)) {
-                        yaVisitada = true;
-                        break;
+                NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
+                while (conexiones != null) {
+                    String destino = conexiones.getDestino();
+                    boolean yaVisitada = false;
+                    for (int j = 0; j < numVisitadas; j++) {
+                        if (visitadas[j].equals(destino)) {
+                            yaVisitada = true;
+                            break;
+                        }
                     }
+                    if (!yaVisitada) {
+                        cola[fin++] = destino;
+                    }
+                    conexiones = conexiones.getpNext();
                 }
-
-                // Si no ha sido visitada, la agregamos a la cola
-                if (!yaVisitada) {
-                    cola[fin++] = destino; // Añadimos la parada al final de la cola
-                }
-                conexiones = conexiones.getpNext(); // Avanzamos a la siguiente conexión
             }
+            nivel++;
         }
-        nivel++; // Aumentamos el nivel después de procesar todas las paradas actuales
     }
-}
 
     public void mostrarGrafo() {
-    Graph graph = new SingleGraph("Red de Transporte");
-    graph.setStrict(false);
-    graph.setAutoCreate(true);
+        Graph graph = new SingleGraph("Red de Transporte");
+        graph.setStrict(false);
+        graph.setAutoCreate(true);
 
-    // Agregar nodos al grafo
-    NodoParada actual = listaParadas.getpFirst();
-    while (actual != null) {
-        // Asegúrate de que getNombreParada() devuelva un valor no nulo y único
-        String nombreParada = actual.getNombreParada();
-        if (nombreParada != null) {
+        NodoParada actual = listaParadas.getpFirst();
+        while (actual != null) {
+            String nombreParada = actual.getNombreParada();
             graph.addNode(nombreParada);
-        } else {
-            System.err.println("Nombre de parada nulo encontrado.");
+            actual = actual.getpNext();
         }
-        actual = actual.getpNext();
-    }
 
-    // Agregar conexiones al grafo
-    NodoConexion conexionActual = listaConexiones.getpFirst();
-    while (conexionActual != null) {
-        String origen = conexionActual.getOrigen();
-        String destino = conexionActual.getDestino();
-        // Asegúrate de que los nombres de las paradas no sean nulos
-        if (origen != null && destino != null) {
+        NodoConexion conexionActual = listaConexiones.getpFirst();
+        while (conexionActual != null) {
+            String origen = conexionActual.getOrigen();
+            String destino = conexionActual.getDestino();
             graph.addEdge(origen + "-" + destino, origen, destino, true);
-        } else {
-            System.err.println("Conexión con origen o destino nulo: " + origen + " - " + destino);
+            conexionActual = conexionActual.getpNext();
         }
-        conexionActual = conexionActual.getpNext();
-    }
 
-    // Mostrar el grafo
-    graph.display();
+        graph.display();
     }
-    
-    /**
- *
- * @author Tomas Paraco
- */
-    
-    public void agregarLinea(String nombreLinea, String[] paradas) {
-    System.out.println("Agregando nueva línea: " + nombreLinea);
-    for (int i = 0; i < paradas.length - 1; i++) {
-        String parada1 = paradas[i];
-        String parada2 = paradas[i + 1];
-        listaParadas.agregar(parada1);
-        listaParadas.agregar(parada2);
-        listaConexiones.agregar(parada1, parada2);
-    }
-    System.out.println("Línea agregada: " + nombreLinea);
-}
 }
