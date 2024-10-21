@@ -5,6 +5,9 @@ package proyectochristian.Parada;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
  //* @author Cesar Augusto
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.SingleGraph;
 import java.io.*;
@@ -44,15 +47,40 @@ public class Grafo {
 
     public void cargarDesdeArchivo(File archivo) {
         try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
-            String linea;
-            while ((linea = br.readLine()) != null) {
-                String[] partes = linea.split(";");
-                String parada1 = partes[0];
-                String parada2 = partes[1];
+            Gson gson = new Gson();
+            JsonObject json = JsonParser.parseReader(br).getAsJsonObject();
 
-                listaParadas.agregar(parada1);
-                listaParadas.agregar(parada2);
-                listaConexiones.agregar(parada1, parada2);
+            for (String nombreRed : json.keySet()) {
+                JsonObject red = json.getAsJsonObject(nombreRed);
+                for (String nombreLinea : red.keySet()) {
+                    JsonElement paradasElement = red.get(nombreLinea);
+
+                    if (paradasElement.isJsonArray()) {
+                        for (JsonElement paradaElement : paradasElement.getAsJsonArray()) {
+                            if (paradaElement.isJsonPrimitive()) {
+                                // Si es una parada normal
+                                String nombreParada = paradaElement.getAsString();
+                                if (listaParadas.buscarParada(nombreParada) == null) {  // Evita duplicados
+                                    listaParadas.agregar(nombreParada);
+                                }
+                            } else if (paradaElement.isJsonObject()) {
+                                // Si es una conexión peatonal
+                                JsonObject conexion = paradaElement.getAsJsonObject();
+                                for (String parada1 : conexion.keySet()) {
+                                    String parada2 = conexion.get(parada1).getAsString();
+                                    if (listaParadas.buscarParada(parada1) == null) {
+                                        listaParadas.agregar(parada1);
+                                    }
+                                    if (listaParadas.buscarParada(parada2) == null) {
+                                        listaParadas.agregar(parada2);
+                                    }
+                                    // Agrega la conexión
+                                    listaConexiones.agregar(parada1, parada2);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         } catch (IOException e) {
             System.err.println("Error al leer el archivo: " + e.getMessage());
