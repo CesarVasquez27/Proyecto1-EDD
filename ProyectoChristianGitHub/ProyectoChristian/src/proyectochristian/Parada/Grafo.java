@@ -4,7 +4,13 @@ package proyectochristian.Parada;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
- //* @author Cesar Augusto
+
+/**
+ * Clase Grafo
+ * Implementa la estructura de un grafo para representar la red de transporte con paradas y sucursales.
+ * 
+ * @author Cesar Augusto, Tomas Paraco, Christian
+ */
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.SingleGraph;
 import java.io.*;
@@ -15,10 +21,14 @@ import proyectochristian.Sucursal.NodoSucursal;
 
 public class Grafo {
     private ListaParada listaParadas;  // Lista de paradas
-    private ListaConexion listaConexiones;  // Lista de conexiones
-    private final ListaSucursal listaSucursales;  // Lista de sucursales
-    private int t;  // Valor de cobertura
+    private ListaConexion listaConexiones;  // Lista de conexiones entre paradas
+    private final ListaSucursal listaSucursales;  // Lista de sucursales asignadas
+    private int t;  // Valor que define el rango de cobertura
 
+    /**
+     * Constructor de la clase Grafo.
+     * @param tInicial Valor inicial de cobertura.
+     */
     public Grafo(int tInicial) {
         this.listaParadas = new ListaParada();
         this.listaConexiones = new ListaConexion();
@@ -26,14 +36,26 @@ public class Grafo {
         this.t = tInicial;
     }
 
+    /**
+     * Asigna un nuevo valor de cobertura.
+     * @param nuevoT Nuevo valor de cobertura.
+     */
     public void setT(int nuevoT) {
         this.t = nuevoT;
     }
 
+    /**
+     * Obtiene el valor actual de cobertura.
+     * @return Valor de cobertura.
+     */
     public int getT() {
         return t;
     }
 
+    /**
+     * Carga una nueva red de transporte desde un archivo, eliminando la red anterior.
+     * @param archivo Archivo con la información de la nueva red.
+     */
     public void cargarNuevaRedDesdeArchivo(File archivo) {
         listaParadas = new ListaParada();
         listaConexiones = new ListaConexion();
@@ -43,6 +65,10 @@ public class Grafo {
         System.out.println("Nueva red cargada desde: " + archivo.getName());
     }
 
+    /**
+     * Carga las paradas y conexiones desde un archivo dado.
+     * @param archivo Archivo de texto con las paradas y conexiones.
+     */
     public void cargarDesdeArchivo(File archivo) {
         try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
             String linea;
@@ -60,126 +86,118 @@ public class Grafo {
         }
     }
 
+    /**
+     * Coloca una nueva sucursal en una parada específica.
+     * @param nombreParada Nombre de la parada donde se coloca la sucursal.
+     */
     public void colocarSucursal(String nombreParada) {
         listaSucursales.agregar(nombreParada);
         System.out.println("Sucursal colocada en: " + nombreParada);
     }
 
+    /**
+     * Elimina una sucursal de una parada específica.
+     * @param nombreParada Nombre de la parada donde se elimina la sucursal.
+     */
     public void quitarSucursal(String nombreParada) {
         listaSucursales.eliminar(nombreParada);
         System.out.println("Sucursal eliminada de: " + nombreParada);
     }
 
+    /**
+     * Verifica la cobertura de una sucursal mediante DFS o BFS.
+     * @param nombreParada Nombre de la parada base.
+     * @param usarDFS True para usar DFS, false para BFS.
+     * @param paradasCubiertas Arreglo de paradas cubiertas.
+     * @param numParadasCubiertas Número de paradas cubiertas.
+     */
     private void verificarCoberturaSucursal(String nombreParada, boolean usarDFS, String[] paradasCubiertas, int numParadasCubiertas) {
-    if (usarDFS) {
-        dfs(nombreParada, 0, paradasCubiertas, numParadasCubiertas);
-    } else {
-        bfs(nombreParada, paradasCubiertas, numParadasCubiertas);
+        if (usarDFS) {
+            dfs(nombreParada, 0, paradasCubiertas, numParadasCubiertas);
+        } else {
+            bfs(nombreParada, paradasCubiertas, numParadasCubiertas);
+        }
     }
-}
 
     private void dfs(String paradaActual, int profundidad, String[] visitadas, int numVisitadas) {
-    if (profundidad > t || contiene(visitadas, numVisitadas, paradaActual)) return;
-    visitadas[numVisitadas++] = paradaActual;
-    NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
-    while (conexiones != null) {
-        dfs(conexiones.getDestino(), profundidad + 1, visitadas, numVisitadas);
-        conexiones = conexiones.getpNext();
-    }
-}
-
-private void bfs(String nombreParada, String[] visitadas, int numVisitadas) {
-    String[] cola = new String[100];
-    int frente = 0;
-    int fin = 0;
-    int nivel = 0;
-    cola[fin++] = nombreParada;
-    visitadas[numVisitadas++] = nombreParada;
-
-    while (frente < fin && nivel <= t) {
-        int size = fin - frente;
-        for (int i = 0; i < size; i++) {
-            String paradaActual = cola[frente++];
-            NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
-            while (conexiones != null) {
-                String destino = conexiones.getDestino();
-                if (!contiene(visitadas, numVisitadas, destino)) {
-                    cola[fin++] = destino;
-                    visitadas[numVisitadas++] = destino;
-                }
-                conexiones = conexiones.getpNext();
-            }
+        if (profundidad > t || contiene(visitadas, numVisitadas, paradaActual)) return;
+        visitadas[numVisitadas++] = paradaActual;
+        NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
+        while (conexiones != null) {
+            dfs(conexiones.getDestino(), profundidad + 1, visitadas, numVisitadas);
+            conexiones = conexiones.getpNext();
         }
-        nivel++;
     }
-}
-    
+
+    private void bfs(String nombreParada, String[] visitadas, int numVisitadas) {
+        String[] cola = new String[100];
+        int frente = 0, fin = 0, nivel = 0;
+        cola[fin++] = nombreParada;
+        visitadas[numVisitadas++] = nombreParada;
+
+        while (frente < fin && nivel <= t) {
+            int size = fin - frente;
+            for (int i = 0; i < size; i++) {
+                String paradaActual = cola[frente++];
+                NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
+                while (conexiones != null) {
+                    String destino = conexiones.getDestino();
+                    if (!contiene(visitadas, numVisitadas, destino)) {
+                        cola[fin++] = destino;
+                        visitadas[numVisitadas++] = destino;
+                    }
+                    conexiones = conexiones.getpNext();
+                }
+            }
+            nivel++;
+        }
+    }
+
     private boolean contiene(String[] array, int size, String value) {
         for (int i = 0; i < size; i++) {
-        if (array[i].equals(value)) return true;
+            if (array[i].equals(value)) return true;
+        }
+        return false;
     }
-    return false;
-}
+
+    /**
+     * Revisa si todas las paradas están cubiertas por las sucursales existentes.
+     */
     public void revisarCoberturaTotal() {
-    // Crear un arreglo con todas las paradas
-    String[] todasParadas = new String[listaParadas.getSize()];
-    NodoParada actual = listaParadas.getpFirst();
-    int index = 0;
-    while (actual != null) {
-        todasParadas[index++] = actual.getNombreParada();
-        actual = actual.getpNext();
-    }
+        // Cargar todas las paradas
+        String[] todasParadas = new String[listaParadas.getSize()];
+        NodoParada actual = listaParadas.getpFirst();
+        int index = 0;
+        while (actual != null) {
+            todasParadas[index++] = actual.getNombreParada();
+            actual = actual.getpNext();
+        }
 
-    // Crear un arreglo con las paradas cubiertas
-    String[] paradasCubiertas = new String[listaParadas.getSize()];
-    int numParadasCubiertas = 0;
-    NodoSucursal sucursalActual = listaSucursales.getpFirts();
-    while (sucursalActual != null) {
-        verificarCoberturaSucursal(sucursalActual.getNombreSucursal(), false, paradasCubiertas, numParadasCubiertas);
-        sucursalActual = sucursalActual.getpNext();
-    }
+        // Revisar cobertura
+        String[] paradasCubiertas = new String[listaParadas.getSize()];
+        int numParadasCubiertas = 0;
+        NodoSucursal sucursalActual = listaSucursales.getpFirts();
+        while (sucursalActual != null) {
+            verificarCoberturaSucursal(sucursalActual.getNombreSucursal(), false, paradasCubiertas, numParadasCubiertas);
+            sucursalActual = sucursalActual.getpNext();
+        }
 
-    // Verificar si todas las paradas están cubiertas
-    boolean coberturaTotal = true;
-        for (String todasParada : todasParadas) {
-            boolean cubierto = false;
-            for (int j = 0; j < numParadasCubiertas; j++) {
-                if (todasParada.equals(paradasCubiertas[j])) {
-                    cubierto = true;
-                    break;
-                }
-            }
-            if (!cubierto) {
+        // Imprimir resultados
+        boolean coberturaTotal = true;
+        for (String parada : todasParadas) {
+            if (!contiene(paradasCubiertas, numParadasCubiertas, parada)) {
                 coberturaTotal = false;
-                break;
+                System.out.println("Colocar una sucursal en: " + parada);
             }
         }
-
-    // Imprimir resultados de la cobertura
-    if (coberturaTotal) {
-        System.out.println("La cobertura es total.");
-    } else {
-        System.out.println("La cobertura no es total. Sugerencias de nuevas sucursales:");
-        for (String todasParada : todasParadas) {
-            boolean cubierto = false;
-            for (int j = 0; j < numParadasCubiertas; j++) {
-                if (todasParada.equals(paradasCubiertas[j])) {
-                    cubierto = true;
-                    break;
-                }
-            }
-            if (!cubierto) {
-                System.out.println("Colocar una sucursal en la parada: " + todasParada);
-            }
-        }
+        System.out.println(coberturaTotal ? "La cobertura es total." : "Faltan sucursales.");
     }
-}
-    public void mostrarGrafo() {
-    Graph graph = new SingleGraph("Red de Transporte");
-    graph.setStrict(false);
-    graph.setAutoCreate(true);
 
-    // Agregar nodos al grafo
+    public void mostrarGrafo() {
+        Graph graph = new SingleGraph("Red de Transporte");
+        graph.setStrict(false);
+        graph.setAutoCreate(true);
+        // Agregar nodos al grafo
     NodoParada actual = listaParadas.getpFirst();
     while (actual != null) {
         // Asegúrate de que getNombreParada() devuelva un valor no nulo y único
@@ -209,23 +227,13 @@ private void bfs(String nombreParada, String[] visitadas, int numVisitadas) {
     // Mostrar el grafo
     graph.display();
     }
-    
-    /**
- *
- * @author Tomas Paraco
-     * @param nombreLinea
-     * @param paradas
- */
-    
+
     public void agregarLinea(String nombreLinea, String[] paradas) {
-    System.out.println("Agregando nueva línea: " + nombreLinea);
-    for (int i = 0; i < paradas.length - 1; i++) {
-        String parada1 = paradas[i];
-        String parada2 = paradas[i + 1];
-        listaParadas.agregar(parada1);
-        listaParadas.agregar(parada2);
-        listaConexiones.agregar(parada1, parada2);
+        System.out.println("Agregando nueva línea: " + nombreLinea);
+        for (int i = 0; i < paradas.length - 1; i++) {
+            listaParadas.agregar(paradas[i]);
+            listaConexiones.agregar(paradas[i], paradas[i + 1]);
+        }
     }
-    System.out.println("Línea agregada: " + nombreLinea);
 }
-}
+
