@@ -102,6 +102,9 @@ public class ListaParada {
             System.out.println("Lista Vacia");
         }
     }
+    public void clear() {
+        pFirst = null;  // Aquí se reinicia la lista eliminando todas las paradas
+    }
 
     /**
      * Busca una parada en la lista por su nombre.
