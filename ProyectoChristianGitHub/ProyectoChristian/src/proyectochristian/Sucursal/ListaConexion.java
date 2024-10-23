@@ -54,6 +54,9 @@ public class ListaConexion {
             actual.setpNext(nuevaConexion);
         }
     }
+    public void clear() {
+        pFirst = null;  // Aquí se reinicia la lista eliminando todas las paradas
+    }
 
     /**
      * Obtiene la primera conexión que coincide con la parada de origen dada.
