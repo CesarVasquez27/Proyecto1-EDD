@@ -13,7 +13,10 @@ package proyectochristian.Parada;
  */
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.SingleGraph;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import proyectochristian.Sucursal.ListaConexion;
 import proyectochristian.Sucursal.ListaSucursal;
 import proyectochristian.Sucursal.NodoConexion;
@@ -70,17 +73,84 @@ public class Grafo {
      * @param archivo Archivo de texto con las paradas y conexiones.
      */
     public void cargarDesdeArchivo(File archivo) {
-        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+       try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
             String linea;
-            while ((linea = br.readLine()) != null) {
-                String[] partes = linea.split(";");
-                String parada1 = partes[0];
-                String parada2 = partes[1];
+            String lineaNombre = null; // Para almacenar el nombre de la línea
+            String paradaAnterior = null; // Para manejar la conexión entre paradas
+            boolean dentroDeLinea = false;
+            
+            // Limpiar datos previos
+            listaParadas.clear(); 
+            listaConexiones.clear(); 
+            
+            System.out.println("Red anterior eliminada. Cargando nueva red...");
 
-                listaParadas.agregar(parada1);
-                listaParadas.agregar(parada2);
-                listaConexiones.agregar(parada1, parada2);
+            // Leer el archivo línea por línea
+            while ((linea = br.readLine()) != null) {
+                linea = linea.trim(); // Remueve espacios al inicio y al final
+
+                if (linea.isEmpty()) {
+                    // Saltar las líneas vacías
+                    continue;
+                }
+
+                // Detecta el inicio de una nueva línea de metro
+                if (linea.endsWith("[")) {
+                    // Ejemplo: "Linea 1" : [
+                    lineaNombre = linea.split(":")[0].replace("\"", "").trim();
+                    dentroDeLinea = true;
+                    paradaAnterior = null;
+                    continue;
+                }
+
+                // Detecta el final de una línea de metro
+                if (linea.endsWith("],") || linea.endsWith("]")) {
+                    dentroDeLinea = false;
+                    continue;
+                }
+
+                // Si estamos dentro de una línea de metro
+                if (dentroDeLinea) {
+                    // Detectar conexiones peatonales (ej: {"Capitolio":"El Silencio"})
+                    if (linea.startsWith("{") && linea.endsWith("}")) {
+                        // Remover llaves y dividir por los dos puntos
+                        linea = linea.replace("{", "").replace("}", "").replace("\"", "");
+                        String[] paradas = linea.split(":");
+
+                        // Validar que la línea tenga dos paradas
+                        if (paradas.length == 2) {
+                            String parada1 = paradas[0].trim();
+                            String parada2 = paradas[1].trim();
+
+                            // Agregar paradas y conexión peatonal
+                            listaParadas.agregar(parada1);
+                            listaParadas.agregar(parada2);
+                            listaConexiones.agregar(parada1, parada2); // Conexión peatonal
+                        } else {
+                            System.err.println("Formato inválido en la conexión peatonal: " + linea);
+                        }
+                    } else if (!linea.equals(",") && !linea.equals("")) {
+                        // Detectar paradas normales
+                        String paradaActual = linea.replace(",", "").replace("\"", "").trim();
+
+                        // Validar que la línea no esté vacía
+                        if (!paradaActual.isEmpty()) {
+                            // Agregar la parada actual
+                            listaParadas.agregar(paradaActual);
+
+                            // Conectar con la parada anterior en la misma línea
+                            if (paradaAnterior != null) {
+                                listaConexiones.agregar(paradaAnterior, paradaActual);
+                            }
+
+                            paradaAnterior = paradaActual; // Actualizar la parada anterior
+                        }
+                    }
+                }
             }
+
+            System.out.println("Nueva red cargada desde: " + archivo.getName());
+
         } catch (IOException e) {
             System.err.println("Error al leer el archivo: " + e.getMessage());
         }
