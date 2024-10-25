@@ -170,8 +170,16 @@ public class Grafo {
      * @param nombreParada Nombre de la parada donde se elimina la sucursal.
      */
     public void quitarSucursal(String nombreParada) {
-        listaSucursales.eliminar(nombreParada);
-        System.out.println("Sucursal eliminada de: " + nombreParada);
+        // Eliminar de la lista de paradas
+        listaParadas.eliminar(nombreParada);
+        
+        // Verificar si la parada es una sucursal, y eliminarla también de la lista de sucursales
+        if (listaSucursales.buscarSucursal(nombreParada) != null) {
+            listaSucursales.eliminar(nombreParada);
+            System.out.println("Parada " + nombreParada + " eliminada como sucursal.");
+        } else {
+            System.out.println("Parada " + nombreParada + " eliminada, no es una sucursal.");
+        }
     }
 
     /**
