@@ -39,7 +39,7 @@ public class ListaSucursal {
      * @param pFirts Nodo que será el nuevo primer elemento de la lista.
      */
     public void setpFirst(NodoSucursal pFirst) {
-        this.pFirts = pFirts;
+        this.pFirst = pFirst;
     }
 
     /**
