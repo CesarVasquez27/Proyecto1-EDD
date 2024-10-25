@@ -109,13 +109,26 @@ public class ListaSucursal {
             System.out.println("Lista Vacia");
         }
     }
+    
+    /**
+     * Busca una sucursal específica de la lista.
+     * @param nombreParada Nombre de la sucursal a Buscar.
+     * Christian
+     */
+    public NodoSucursal buscarSucursal(String nombreSucursal) {
+        NodoSucursal actual = pFirst;
+        while (actual != null) {
+            if (actual.getNombreSucursal().equals(nombreSucursal)) {
+                return actual;  // Sucursal encontrada
+            }
+            actual = actual.getpNext();
+        }
+        return null;  // Sucursal no encontrada
+    }
 
     /**
      * Elimina una sucursal específica de la lista.
-     * Actualmente, esta función no está implementada.
-     * 
      * @param nombreParada Nombre de la sucursal a eliminar.
-     * @throws UnsupportedOperationException Método no implementado.
      */
     public void eliminar(String nombreSucursal) {
         if (pFirst == null) return; // Lista vacía
