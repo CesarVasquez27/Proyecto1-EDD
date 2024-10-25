@@ -12,7 +12,7 @@ package proyectochristian.Sucursal;
  * @author Christian
  */
 public class ListaSucursal {
-    private NodoSucursal pFirts;  // Primer nodo de la lista de sucursales
+    private NodoSucursal pFirst;  // Primer nodo de la lista de sucursales
     private int size;  // Tamaño de la lista
 
     /**
@@ -20,7 +20,7 @@ public class ListaSucursal {
      * Inicializa la lista como vacía.
      */
     public ListaSucursal() {
-        this.pFirts = null;
+        this.pFirst = null;
         this.size = 0;
     }
 
@@ -29,8 +29,8 @@ public class ListaSucursal {
      * 
      * @return El primer nodo de tipo {@link NodoSucursal}, o null si la lista está vacía.
      */
-    public NodoSucursal getpFirts() {
-        return pFirts;
+    public NodoSucursal getpFirst() {
+        return pFirst;
     }
 
     /**
@@ -38,7 +38,7 @@ public class ListaSucursal {
      * 
      * @param pFirts Nodo que será el nuevo primer elemento de la lista.
      */
-    public void setpFirts(NodoSucursal pFirts) {
+    public void setpFirst(NodoSucursal pFirst) {
         this.pFirts = pFirts;
     }
 
@@ -66,7 +66,7 @@ public class ListaSucursal {
      * @return true si la lista está vacía, false en caso contrario.
      */
     public boolean isEmpty() {
-        return pFirts == null;
+        return pFirst == null;
     }
 
     /**
@@ -79,12 +79,12 @@ public class ListaSucursal {
     public void agregar(String nombreSucursal) {
         NodoSucursal pNew = new NodoSucursal(nombreSucursal);
         if (this.isEmpty()) {
-            this.setpFirts(pNew);
+            this.setpFirst(pNew);
         } else {
             if (size == 1) {
-                this.pFirts.setpNext(pNew);
+                this.pFirst.setpNext(pNew);
             } else {
-                NodoSucursal aux = pFirts;
+                NodoSucursal aux = pFirst;
                 while (aux.getpNext() != null) {
                     aux = aux.getpNext();
                 }
@@ -100,7 +100,7 @@ public class ListaSucursal {
      */
     public void print() {
         if (!isEmpty()) {
-            NodoSucursal aux = pFirts;
+            NodoSucursal aux = pFirst;
             while (aux != null) {
                 System.out.println(aux.getNombreSucursal());
                 aux = aux.getpNext();
@@ -117,8 +117,27 @@ public class ListaSucursal {
      * @param nombreParada Nombre de la sucursal a eliminar.
      * @throws UnsupportedOperationException Método no implementado.
      */
-    public void eliminar(String nombreParada) {
-        throw new UnsupportedOperationException("Not supported yet."); 
+    public void eliminar(String nombreSucursal) {
+        if (pFirst == null) return; // Lista vacía
+
+    // Si la sucursal a eliminar es la primera
+        if (pFirst.getNombreSucursal().equals(nombreSucursal)) {
+            pFirst = pFirst.getpNext();
+            size--; // Decrementar tamaño al eliminar el primer nodo
+            return;
     }
+
+    // Buscar la sucursal en la lista
+        NodoSucursal actual = pFirst;
+        while (actual.getpNext() != null) {
+            if (actual.getpNext().getNombreSucursal().equals(nombreSucursal)) {
+                // Saltar el nodo que queremos eliminar
+                actual.setpNext(actual.getpNext().getpNext());
+                size--; // Decrementar tamaño al eliminar un nodo
+                return;
+        }
+        actual = actual.getpNext();
+    }
+  }
 }
 
