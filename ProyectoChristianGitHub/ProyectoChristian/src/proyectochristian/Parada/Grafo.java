@@ -246,7 +246,7 @@ public class Grafo {
         // Revisar cobertura
         String[] paradasCubiertas = new String[listaParadas.getSize()];
         int numParadasCubiertas = 0;
-        NodoSucursal sucursalActual = listaSucursales.getpFirts();
+        NodoSucursal sucursalActual = listaSucursales.getpFirst();
         while (sucursalActual != null) {
             verificarCoberturaSucursal(sucursalActual.getNombreSucursal(), false, paradasCubiertas, numParadasCubiertas);
             sucursalActual = sucursalActual.getpNext();
