@@ -122,6 +122,31 @@ public class ListaParada {
         }
         return null;  // Parada no encontrada
     }
+    /**
+     * Elimina Parada.
+     * @author Christian
+     * @param nombreParada El nombre de la parada a eliminar.
+     */
+    public void eliminar(String nombreParada) {
+        if (pFirst == null) return; // Aquí devuelve una lista vacía
+        if (pFirst.getNombreParada().equals(nombreParada)) {
+            pFirst = pFirst.getpNext();
+            size--;
+            return;
+        }
+
+        // Buscar la parada en la lista
+        NodoParada actual = pFirst;
+        while (actual.getpNext() != null) {
+            if (actual.getpNext().getNombreParada().equals(nombreParada)) {
+                // Saltar el nodo que queremos eliminar
+                actual.setpNext(actual.getpNext().getpNext());
+                size--;
+                return;
+            }
+            actual = actual.getpNext();
+        }
+    }
 }
  
     
