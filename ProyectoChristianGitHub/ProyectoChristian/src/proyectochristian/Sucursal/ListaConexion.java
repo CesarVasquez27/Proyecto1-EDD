@@ -32,17 +32,6 @@ public class ListaConexion {
         return pFirst;
     }
 
-    /**
-     * Agrega una nueva conexión entre dos paradas.
-     * Si la lista está vacía, la nueva conexión se convierte en la primera.
-     * En caso contrario, se agrega al final de la lista.
-     * 
-     * @param origen  El nombre de la parada de origen.
-     * @param destino El nombre de la parada de destino.
-     * 
-     * @author Tomas Paraco
-     */
-    /**
 /**
  * Agrega una nueva conexión entre dos paradas si no existe previamente.
  * 
