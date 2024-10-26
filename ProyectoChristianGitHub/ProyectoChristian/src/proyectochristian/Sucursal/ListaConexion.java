@@ -42,18 +42,41 @@ public class ListaConexion {
      * 
      * @author Tomas Paraco
      */
-    public void agregar(String origen, String destino) {
-        NodoConexion nuevaConexion = new NodoConexion(origen, destino);
-        if (pFirst == null) {
-            pFirst = nuevaConexion;
-        } else {
-            NodoConexion actual = pFirst;
-            while (actual.getpNext() != null) {
-                actual = actual.getpNext();
-            }
-            actual.setpNext(nuevaConexion);
-        }
+    /**
+/**
+ * Agrega una nueva conexión entre dos paradas si no existe previamente.
+ * 
+ * @param origen El nombre de la parada de origen.
+ * @param destino El nombre de la parada de destino.
+ */
+public void agregar(String origen, String destino) {
+    // No agregar si origen y destino son iguales
+    if (origen.equals(destino)) {
+        return;
     }
+
+    // Verificar si la conexión ya existe en cualquier dirección
+    NodoConexion actual = pFirst;
+    while (actual != null) {
+        if ((actual.getOrigen().equals(origen) && actual.getDestino().equals(destino)) ||
+            (actual.getOrigen().equals(destino) && actual.getDestino().equals(origen))) {
+            return; // La conexión ya existe
+        }
+        actual = actual.getpNext();
+    }
+
+    // Agregar conexión en ambas direcciones
+    NodoConexion nuevaConexion1 = new NodoConexion(origen, destino);
+    NodoConexion nuevaConexion2 = new NodoConexion(destino, origen);
+
+    // Agregar primera conexión
+    nuevaConexion1.setpNext(pFirst);
+    pFirst = nuevaConexion1;
+
+    // Agregar conexión inversa
+    nuevaConexion2.setpNext(pFirst);
+    pFirst = nuevaConexion2;
+}
     public void clear() {
         pFirst = null;  // Aquí se reinicia la lista eliminando todas las paradas
     }
@@ -77,5 +100,3 @@ public class ListaConexion {
         return null;
     }
 }
-
-
