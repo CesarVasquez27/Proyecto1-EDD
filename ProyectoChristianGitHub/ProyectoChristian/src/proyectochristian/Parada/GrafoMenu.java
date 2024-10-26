@@ -131,64 +131,86 @@ public class GrafoMenu extends JFrame {
         });
     }
 
-    /**
-     * Muestra el grafo en el panel correspondiente usando GraphStream.
-     * Crea los nodos y las conexiones a partir de los datos del grafo.
+    /** 
+     * Muestra el grafo en el panel correspondiente.
      */
     private void mostrarGrafoEnPanel() {
-        graphPanel.removeAll();
+    graphPanel.removeAll();  // Limpiar el panel
 
-        Graph graph = new SingleGraph("Red de Transporte");
-        graph.setStrict(false);
-        graph.setAutoCreate(true);
+    // Crear el grafo usando GraphStream
+    Graph graph = new SingleGraph("Red de Transporte");
+    graph.setStrict(false);
+    graph.setAutoCreate(true);
 
-        NodoParada paradaActual = grafo.getListaParadas().getpFirst();
-        while (paradaActual != null) {
-            String nombreParada = paradaActual.getNombreParada();
-            graph.addNode(nombreParada).setAttribute("ui.label", nombreParada);
-            paradaActual = paradaActual.getpNext();
-        }
+    // Estilo para los nodos y el texto
+    String styleSheet =
+        "node {" +
+        "   fill-color: black;" +
+        "   size: 20px;" +
+        "   text-size: 12px;" +
+        "   text-color: white;" +
+        "   text-background-mode: rounded-box;" +
+        "   text-background-color: black;" +
+        "   text-alignment: right;" + // Posicionar el texto al lado del nodo
+        "}" +
+        "edge {" +
+        "   fill-color: gray;" +
+        "   size: 3px;" +
+        "}";
 
-        NodoConexion conexionActual = grafo.getListaConexiones().getpFirst();
-        while (conexionActual != null) {
-            String origen = conexionActual.getOrigen();
-            String destino = conexionActual.getDestino();
-            graph.addEdge(origen + "-" + destino, origen, destino, true);
-            conexionActual = conexionActual.getpNext();
-        }
+    graph.setAttribute("ui.stylesheet", styleSheet);
 
-        Viewer viewer = new SwingViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
-        ViewPanel viewPanel = (ViewPanel) viewer.addDefaultView(false);
-        viewer.enableAutoLayout();
-
-        if (viewPanel != null) {
-            viewer.getDefaultView().getCamera().setViewPercent(1.2);
-            viewPanel.setPreferredSize(new Dimension(graphPanel.getWidth(), graphPanel.getHeight()));
-            graphPanel.add(viewPanel, BorderLayout.CENTER);
-            graphPanel.revalidate();
-            graphPanel.repaint();
-        } else {
-            mostrarError("Error: No se pudo obtener el ViewPanel.");
-        }
+    // Agregar nodos (paradas)
+    NodoParada paradaActual = grafo.getListaParadas().getpFirst();
+    while (paradaActual != null) {
+        String nombreParada = paradaActual.getNombreParada();
+        graph.addNode(nombreParada).setAttribute("ui.label", nombreParada);
+        paradaActual = paradaActual.getpNext();
     }
 
-    /**
-     * Muestra un mensaje en la interfaz agregándolo al JTextArea.
-     * 
-     * @param mensaje El mensaje a mostrar.
+    // Agregar arcos (líneas)
+    NodoConexion conexionActual = grafo.getListaConexiones().getpFirst();
+    while (conexionActual != null) {
+        String origen = conexionActual.getOrigen();
+        String destino = conexionActual.getDestino();
+        graph.addEdge(origen + "-" + destino, origen, destino, true);
+        conexionActual = conexionActual.getpNext();
+    }
+
+    // Mostrar el grafo sin abrir una ventana adicional
+    Viewer viewer = new SwingViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
+    ViewPanel viewPanel = (ViewPanel) viewer.addDefaultView(false);
+    viewer.enableAutoLayout();  // Habilitar diseño automático
+
+    if (viewPanel != null) {
+        // Ajustar el tamaño y centrado del grafo
+        viewer.getDefaultView().getCamera().setViewPercent(1.0);  // Ajustar zoom
+        viewer.getDefaultView().getCamera().resetView();  // Asegurar que todo el grafo sea visible
+        viewPanel.setPreferredSize(new Dimension(1500, 1500));  // Asignar un tamaño más grande para permitir el desplazamiento
+        JScrollPane scrollPane = new JScrollPane(viewPanel);  // Añadir barra de desplazamiento
+        scrollPane.setPreferredSize(new Dimension(graphPanel.getWidth(), graphPanel.getHeight()));
+        graphPanel.add(scrollPane, BorderLayout.CENTER);
+        graphPanel.revalidate();
+        graphPanel.repaint();
+    } else {
+        mostrarError("Error: No se pudo obtener el ViewPanel.");
+    }
+}
+
+    /** 
+     * Muestra un mensaje en la interfaz.
      */
     private void mostrarMensaje(String mensaje) {
         textAreaCobertura.append(mensaje + "\n");
     }
 
-    /**
-     * Muestra un mensaje de error en un cuadro de diálogo.
-     * 
-     * @param mensaje El mensaje de error a mostrar.
+    /** 
+     * Muestra un error en un cuadro de diálogo.
      */
     private void mostrarError(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
     }
+    
 
     /**
      * Método principal que inicia la aplicación.
