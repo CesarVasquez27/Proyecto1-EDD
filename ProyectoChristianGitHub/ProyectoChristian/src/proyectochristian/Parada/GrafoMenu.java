@@ -131,93 +131,107 @@ public class GrafoMenu extends JFrame {
         });
     }
 
-    /** 
-     * Muestra el grafo en el panel correspondiente.
-     */
+    /**
+    * Muestra el grafo en el panel correspondiente.
+    */
     private void mostrarGrafoEnPanel() {
-    graphPanel.removeAll();  // Limpiar el panel
+        // Limpiar el panel de grafo para evitar superposiciones al renderizar nuevamente
+        graphPanel.removeAll();  
 
-    // Crear el grafo usando GraphStream
-    Graph graph = new SingleGraph("Red de Transporte");
-    graph.setStrict(false);
-    graph.setAutoCreate(true);
+        // Crear un objeto grafo utilizando la implementación SingleGraph de GraphStream
+        Graph graph = new SingleGraph("Red de Transporte");
+        graph.setStrict(false);  // Permitir que el grafo no sea estrictamente acíclico
+        graph.setAutoCreate(true);  // Crear nodos automáticamente si no existen al añadir aristas
 
-    // Estilo para los nodos y el texto
-    String styleSheet =
-        "node {" +
-        "   fill-color: black;" +
-        "   size: 20px;" +
-        "   text-size: 12px;" +
-        "   text-color: white;" +
-        "   text-background-mode: rounded-box;" +
-        "   text-background-color: black;" +
-        "   text-alignment: right;" + // Posicionar el texto al lado del nodo
-        "}" +
-        "edge {" +
-        "   fill-color: gray;" +
-        "   size: 3px;" +
-        "}";
+        // Definición del estilo visual de los nodos y las aristas
+        String styleSheet =
+            "node {" +
+            "   fill-color: black;" +  // Color de relleno de los nodos
+            "   size: 20px;" +  // Tamaño de los nodos
+            "   text-size: 12px;" +  // Tamaño del texto del nodo
+            "   text-color: white;" +  // Color del texto dentro del nodo
+            "   text-background-mode: rounded-box;" +  // Fondo redondeado para el texto
+            "   text-background-color: black;" +  // Fondo negro del texto
+            "   text-alignment: right;" +  // Alinear el texto a la derecha del nodo
+            "}" +
+            "edge {" +
+            "   fill-color: gray;" +  // Color de las aristas
+            "   size: 3px;" +  // Grosor de las aristas
+            "}";
 
-    graph.setAttribute("ui.stylesheet", styleSheet);
+        // Aplicar el estilo al grafo
+        graph.setAttribute("ui.stylesheet", styleSheet);
 
-    // Agregar nodos (paradas)
-    NodoParada paradaActual = grafo.getListaParadas().getpFirst();
-    while (paradaActual != null) {
-        String nombreParada = paradaActual.getNombreParada();
-        graph.addNode(nombreParada).setAttribute("ui.label", nombreParada);
-        paradaActual = paradaActual.getpNext();
+        // Recorrer y agregar las paradas (nodos) desde la lista del grafo personalizado
+        NodoParada paradaActual = grafo.getListaParadas().getpFirst();
+        while (paradaActual != null) {
+            String nombreParada = paradaActual.getNombreParada();
+            graph.addNode(nombreParada).setAttribute("ui.label", nombreParada);  // Añadir nodo con etiqueta
+            paradaActual = paradaActual.getpNext();  // Pasar al siguiente nodo en la lista
+        }
+
+        // Recorrer y agregar las conexiones (aristas) entre paradas
+        NodoConexion conexionActual = grafo.getListaConexiones().getpFirst();
+        while (conexionActual != null) {
+            String origen = conexionActual.getOrigen();
+            String destino = conexionActual.getDestino();
+            // Añadir una arista entre el origen y el destino con un identificador único
+            graph.addEdge(origen + "-" + destino, origen, destino, true);  
+            conexionActual = conexionActual.getpNext();  // Pasar a la siguiente conexión
+        }
+
+        // Crear un visor para mostrar el grafo en el panel sin abrir una nueva ventana
+        Viewer viewer = new SwingViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
+        ViewPanel viewPanel = (ViewPanel) viewer.addDefaultView(false);  // Panel donde se muestra el grafo
+        viewer.enableAutoLayout();  // Habilitar el diseño automático para los nodos y aristas
+
+        if (viewPanel != null) {
+            // Ajustar la vista para que todo el grafo sea visible dentro del panel
+            viewer.getDefaultView().getCamera().setViewPercent(1.0);  
+            viewer.getDefaultView().getCamera().resetView();  // Restablecer la vista para centrar el grafo
+
+            // Establecer el tamaño preferido del panel de visualización
+            viewPanel.setPreferredSize(new Dimension(1500, 1500));  
+
+            // Añadir el panel de visualización a un JScrollPane para permitir el desplazamiento
+            JScrollPane scrollPane = new JScrollPane(viewPanel);  
+            scrollPane.setPreferredSize(new Dimension(graphPanel.getWidth(), graphPanel.getHeight()));
+
+            // Agregar el JScrollPane al panel principal y actualizar la interfaz
+            graphPanel.add(scrollPane, BorderLayout.CENTER);
+            graphPanel.revalidate();  // Actualizar el diseño del panel
+            graphPanel.repaint();  // Repintar el panel para reflejar los cambios
+        } else {
+            // Mostrar un mensaje de error si no se pudo crear el ViewPanel
+            mostrarError("Error: No se pudo obtener el ViewPanel.");
+        }
     }
 
-    // Agregar arcos (líneas)
-    NodoConexion conexionActual = grafo.getListaConexiones().getpFirst();
-    while (conexionActual != null) {
-        String origen = conexionActual.getOrigen();
-        String destino = conexionActual.getDestino();
-        graph.addEdge(origen + "-" + destino, origen, destino, true);
-        conexionActual = conexionActual.getpNext();
-    }
-
-    // Mostrar el grafo sin abrir una ventana adicional
-    Viewer viewer = new SwingViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
-    ViewPanel viewPanel = (ViewPanel) viewer.addDefaultView(false);
-    viewer.enableAutoLayout();  // Habilitar diseño automático
-
-    if (viewPanel != null) {
-        // Ajustar el tamaño y centrado del grafo
-        viewer.getDefaultView().getCamera().setViewPercent(1.0);  // Ajustar zoom
-        viewer.getDefaultView().getCamera().resetView();  // Asegurar que todo el grafo sea visible
-        viewPanel.setPreferredSize(new Dimension(1500, 1500));  // Asignar un tamaño más grande para permitir el desplazamiento
-        JScrollPane scrollPane = new JScrollPane(viewPanel);  // Añadir barra de desplazamiento
-        scrollPane.setPreferredSize(new Dimension(graphPanel.getWidth(), graphPanel.getHeight()));
-        graphPanel.add(scrollPane, BorderLayout.CENTER);
-        graphPanel.revalidate();
-        graphPanel.repaint();
-    } else {
-        mostrarError("Error: No se pudo obtener el ViewPanel.");
-    }
-}
-
-    /** 
-     * Muestra un mensaje en la interfaz.
-     */
+    /**
+    * Muestra un mensaje informativo en el JTextArea correspondiente.
+    * 
+    * @param mensaje El mensaje a mostrar.
+    */
     private void mostrarMensaje(String mensaje) {
-        textAreaCobertura.append(mensaje + "\n");
+        textAreaCobertura.append(mensaje + "\n");  // Añadir el mensaje al final del JTextArea
     }
 
-    /** 
-     * Muestra un error en un cuadro de diálogo.
-     */
+    /**
+     * Muestra un mensaje de error en un cuadro de diálogo emergente.
+    * 
+    * @param mensaje El mensaje de error a mostrar.
+    */
     private void mostrarError(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);  // Cuadro de error
     }
-    
 
     /**
      * Método principal que inicia la aplicación.
-     * 
-     * @param args Los argumentos de la línea de comandos.
-     */
+    * 
+    * @param args Los argumentos de la línea de comandos.
+    */
     public static void main(String[] args) {
+        // Ejecuta la aplicación en el hilo de la interfaz gráfica (Event Dispatch Thread)
         SwingUtilities.invokeLater(() -> new GrafoMenu().setVisible(true));
     }
 }
