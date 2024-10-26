@@ -241,7 +241,13 @@ public class Grafo {
     /**
      * Revisa si todas las paradas están cubiertas por las sucursales existentes.
      */
-    public void revisarCoberturaTotal() {
+    /**
+    * Revisa si todas las paradas están cubiertas por las sucursales existentes.
+     * @return Un String con los resultados de la cobertura.
+    */
+    public String revisarCoberturaTotal() {
+        StringBuilder resultado = new StringBuilder();
+
         // Cargar todas las paradas
         String[] todasParadas = new String[listaParadas.getSize()];
         NodoParada actual = listaParadas.getpFirst();
@@ -260,16 +266,24 @@ public class Grafo {
             sucursalActual = sucursalActual.getpNext();
         }
 
-        // Imprimir resultados
+        // Generar resultados
         boolean coberturaTotal = true;
         for (String parada : todasParadas) {
             if (!contiene(paradasCubiertas, numParadasCubiertas, parada)) {
                 coberturaTotal = false;
-                System.out.println("Colocar una sucursal en: " + parada);
+                resultado.append("Colocar una sucursal en: ").append(parada).append("\n");
             }
         }
-        System.out.println(coberturaTotal ? "La cobertura es total." : "Faltan sucursales.");
-    }
+    
+        if (coberturaTotal) {
+            resultado.append("La cobertura es total.\n");
+        } else {
+            resultado.append("Faltan sucursales por colocar.\n");
+        }
+
+        return resultado.toString();  // Devolver el resultado como String
+}
+    
 
     public void mostrarGrafo() {
         Graph graph = new SingleGraph("Red de Transporte");
@@ -313,5 +327,22 @@ public class Grafo {
             listaConexiones.agregar(paradas[i], paradas[i + 1]);
         }
     }
+    
+    // Método para obtener la lista de paradas
+    public ListaParada getListaParadas() {
+        return listaParadas;
+    }
+
+    // Método para obtener la lista de conexiones
+    public ListaConexion getListaConexiones() {
+        return listaConexiones;
+    }
+
+    // Método para obtener la lista de sucursales
+    public ListaSucursal getListaSucursales() {
+        return listaSucursales;
+        
+}
+    
 }
 
