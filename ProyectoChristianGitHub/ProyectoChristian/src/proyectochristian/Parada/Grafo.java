@@ -140,100 +140,119 @@ public class Grafo {
        
 
     /**
-     * Coloca una nueva sucursal en una parada específica.
-     * @param nombreParada Nombre de la parada donde se coloca la sucursal.
-     */
+    * Coloca una nueva sucursal en una parada específica.
+    * @param nombreParada Nombre de la parada donde se coloca la sucursal.
+    */
     public void colocarSucursal(String nombreParada) {
-    // Verificar si la parada existe
-    if (!existeParada(nombreParada)) {
-        JOptionPane.showMessageDialog(null, 
-            "Esta parada no existe", 
-            "Error", 
-            JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-    
-    // Verificar si ya existe una sucursal en esta parada
-    if (listaSucursales.buscarSucursal(nombreParada) != null) {
-        JOptionPane.showMessageDialog(null, 
-            "Ya hay una sucursal aquí", 
-            "Advertencia", 
-            JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-    
-    // Si pasa las validaciones, agregar la sucursal
-    listaSucursales.agregar(nombreParada);
-    JOptionPane.showMessageDialog(null, 
-        "Sucursal colocada exitosamente en: " + nombreParada, 
-        "Éxito", 
-        JOptionPane.INFORMATION_MESSAGE);
-}
-
-/**
- * Verifica si una parada existe en la red de transporte.
- * @param nombreParada Nombre de la parada a verificar
- * @return true si la parada existe, false en caso contrario
- */
-private boolean existeParada(String nombreParada) {
-    NodoParada actual = listaParadas.getpFirst();
-    while (actual != null) {
-        if (actual.getNombreParada().equalsIgnoreCase(nombreParada)) {
-            return true;
+        // Verificar si la parada existe
+        if (!existeParada(nombreParada)) {
+            mostrarMensajeError("Esta parada no existe");
+            return;
         }
-        actual = actual.getpNext();
-    }
-    return false;
-}
 
-/**
- * Elimina una sucursal de una parada específica.
- * @param nombreParada Nombre de la parada donde se elimina la sucursal.
- */
-public void quitarSucursal(String nombreParada) {
-    // Verificar si la parada existe
-    if (!existeParada(nombreParada)) {
-        JOptionPane.showMessageDialog(null, 
-            "Esta parada no existe", 
-            "Error", 
-            JOptionPane.ERROR_MESSAGE);
-        return;
+        // Verificar si ya hay una sucursal en esta parada
+        if (listaSucursales.buscarSucursal(nombreParada) != null) {
+            mostrarMensajeAdvertencia("Ya hay una sucursal aquí");
+            return;
+        }
+
+        // Agregar la sucursal si pasa las validaciones
+        listaSucursales.agregar(nombreParada);
+        mostrarMensajeExito("Sucursal colocada exitosamente en: " + nombreParada);
     }
-    
-    // Verificar si hay una sucursal para quitar
-    if (listaSucursales.buscarSucursal(nombreParada) == null) {
-        JOptionPane.showMessageDialog(null, 
-            "No hay sucursal para quitar en esta parada", 
-            "Advertencia", 
-            JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-    
-    // Si existe la sucursal, quitarla
-    listaSucursales.eliminar(nombreParada);
-    JOptionPane.showMessageDialog(null, 
-        "Sucursal eliminada exitosamente de: " + nombreParada, 
-        "Éxito", 
-        JOptionPane.INFORMATION_MESSAGE);
-}
+
     /**
-     * Verifica la cobertura de una sucursal mediante DFS o BFS.
-     * @param nombreParada Nombre de la parada base.
-     * @param usarDFS True para usar DFS, false para BFS.
-     * @param paradasCubiertas Arreglo de paradas cubiertas.
-     * @param numParadasCubiertas Número de paradas cubiertas.
-     */
-    private void verificarCoberturaSucursal(String nombreParada, boolean usarDFS, String[] paradasCubiertas, int numParadasCubiertas) {
+    * Verifica si una parada existe en la red de transporte.
+    * @param nombreParada Nombre de la parada a verificar.
+    * @return true si la parada existe, false en caso contrario.
+    */
+    private boolean existeParada(String nombreParada) {
+        NodoParada actual = listaParadas.getpFirst();
+        while (actual != null) {
+            if (actual.getNombreParada().equalsIgnoreCase(nombreParada)) {
+                return true;  // Termina el ciclo al encontrar la parada
+            }
+            actual = actual.getpNext();
+        }
+        return false;
+    }
+
+    /**
+    * Elimina una sucursal de una parada específica.
+    * @param nombreParada Nombre de la parada donde se elimina la sucursal.
+    */
+    public void quitarSucursal(String nombreParada) {
+        // Verificar si la parada existe
+        if (!existeParada(nombreParada)) {
+            mostrarMensajeError("Esta parada no existe");
+            return;
+        }
+
+        // Verificar si hay una sucursal en esta parada
+        if (listaSucursales.buscarSucursal(nombreParada) == null) {
+            mostrarMensajeAdvertencia("No hay sucursal para quitar en esta parada");
+            return;
+        }
+
+        // Eliminar la sucursal si existe
+        listaSucursales.eliminar(nombreParada);
+        mostrarMensajeExito("Sucursal eliminada exitosamente de: " + nombreParada);
+    }
+
+    /**
+    * Muestra un mensaje de error en un cuadro de diálogo.
+    * @param mensaje El mensaje de error a mostrar.
+    */
+    private void mostrarMensajeError(String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+    * Muestra un mensaje de advertencia en un cuadro de diálogo.
+    * @param mensaje El mensaje de advertencia a mostrar.
+    */
+    private void mostrarMensajeAdvertencia(String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje, "Advertencia", JOptionPane.WARNING_MESSAGE);
+    }
+
+    /**
+    * Muestra un mensaje de éxito en un cuadro de diálogo.
+    * @param mensaje El mensaje de éxito a mostrar.
+    */
+    private void mostrarMensajeExito(String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+    * Verifica la cobertura de una sucursal mediante DFS o BFS.
+    * @param nombreParada Nombre de la parada base.
+    * @param usarDFS True para usar DFS, false para BFS.
+    * @return Un arreglo con las paradas cubiertas.
+    */
+    private String[] verificarCoberturaSucursal(String nombreParada, boolean usarDFS) {
+        String[] paradasCubiertas = new String[listaParadas.getSize()];
+        int[] numParadasCubiertas = {0};  // Contenedor para el contador
+
         if (usarDFS) {
             dfs(nombreParada, 0, paradasCubiertas, numParadasCubiertas);
         } else {
             bfs(nombreParada, paradasCubiertas, numParadasCubiertas);
         }
+
+        // Filtrar las paradas no nulas
+        return filtrarParadasCubiertas(paradasCubiertas, numParadasCubiertas[0]);
     }
 
-    private void dfs(String paradaActual, int profundidad, String[] visitadas, int numVisitadas) {
-        if (profundidad > t || contiene(visitadas, numVisitadas, paradaActual)) return;
-        visitadas[numVisitadas++] = paradaActual;
+    /**
+    * Aplica DFS para encontrar las paradas cubiertas desde la parada actual.
+    */
+    private void dfs(String paradaActual, int profundidad, String[] visitadas, int[] numVisitadas) {
+        if (profundidad > t || contiene(visitadas, numVisitadas[0], paradaActual)) return;
+
+        if (numVisitadas[0] < visitadas.length) {
+            visitadas[numVisitadas[0]++] = paradaActual;  // Incrementa el contador de forma segura
+        }
+
         NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
         while (conexiones != null) {
             dfs(conexiones.getDestino(), profundidad + 1, visitadas, numVisitadas);
@@ -241,22 +260,32 @@ public void quitarSucursal(String nombreParada) {
         }
     }
 
-    private void bfs(String nombreParada, String[] visitadas, int numVisitadas) {
-        String[] cola = new String[100];
+
+    /**
+    * Aplica BFS para encontrar las paradas cubiertas desde la parada inicial.
+    */
+    private void bfs(String nombreParada, String[] visitadas, int[] numVisitadas) {
+        String[] cola = new String[100];  // Asegúrate de que sea suficiente
         int frente = 0, fin = 0, nivel = 0;
+
         cola[fin++] = nombreParada;
-        visitadas[numVisitadas++] = nombreParada;
+        if (numVisitadas[0] < visitadas.length) {
+            visitadas[numVisitadas[0]++] = nombreParada;
+        }
 
         while (frente < fin && nivel <= t) {
             int size = fin - frente;
             for (int i = 0; i < size; i++) {
                 String paradaActual = cola[frente++];
                 NodoConexion conexiones = listaConexiones.obtenerConexiones(paradaActual);
+
                 while (conexiones != null) {
                     String destino = conexiones.getDestino();
-                    if (!contiene(visitadas, numVisitadas, destino)) {
+                    if (!contiene(visitadas, numVisitadas[0], destino)) {
                         cola[fin++] = destino;
-                        visitadas[numVisitadas++] = destino;
+                        if (numVisitadas[0] < visitadas.length) {
+                            visitadas[numVisitadas[0]++] = destino;
+                        }
                     }
                     conexiones = conexiones.getpNext();
                 }
@@ -265,42 +294,36 @@ public void quitarSucursal(String nombreParada) {
         }
     }
 
-    private boolean contiene(String[] array, int size, String value) {
-        for (int i = 0; i < size; i++) {
-            if (array[i].equals(value)) return true;
-        }
-        return false;
-    }
+
 
     /**
-     * Revisa si todas las paradas están cubiertas por las sucursales existentes.
-     */
-    /**
     * Revisa si todas las paradas están cubiertas por las sucursales existentes.
-     * @return Un String con los resultados de la cobertura.
+    * @return Un String con los resultados de la cobertura.
     */
     public String revisarCoberturaTotal() {
         StringBuilder resultado = new StringBuilder();
 
         // Cargar todas las paradas
-        String[] todasParadas = new String[listaParadas.getSize()];
+            String[] todasParadas = new String[listaParadas.getSize()];
         NodoParada actual = listaParadas.getpFirst();
         int index = 0;
         while (actual != null) {
-            todasParadas[index++] = actual.getNombreParada();
+            todasParadas[index++] = actual.getNombreParada().toLowerCase(); // Normaliza mayúsculas/minúsculas
             actual = actual.getpNext();
         }
 
         // Revisar cobertura
         String[] paradasCubiertas = new String[listaParadas.getSize()];
         int numParadasCubiertas = 0;
+
         NodoSucursal sucursalActual = listaSucursales.getpFirst();
         while (sucursalActual != null) {
-            verificarCoberturaSucursal(sucursalActual.getNombreSucursal(), false, paradasCubiertas, numParadasCubiertas);
+            String[] coberturaSucursal = verificarCoberturaSucursal(sucursalActual.getNombreSucursal(), false);
+            numParadasCubiertas = combinarListas(paradasCubiertas, numParadasCubiertas, coberturaSucursal);
             sucursalActual = sucursalActual.getpNext();
         }
 
-        // Generar resultados
+        // Generar resultados: Revisar cuáles paradas NO fueron cubiertas
         boolean coberturaTotal = true;
         for (String parada : todasParadas) {
             if (!contiene(paradasCubiertas, numParadasCubiertas, parada)) {
@@ -308,15 +331,69 @@ public void quitarSucursal(String nombreParada) {
                 resultado.append("Colocar una sucursal en: ").append(parada).append("\n");
             }
         }
-    
+
         if (coberturaTotal) {
             resultado.append("La cobertura es total.\n");
         } else {
             resultado.append("Faltan sucursales por colocar.\n");
         }
 
-        return resultado.toString();  // Devolver el resultado como String
-}
+        return resultado.toString();
+    }
+
+    /**
+    * Combina dos listas de paradas cubiertas, evitando duplicados.
+    */
+    private int combinarListas(String[] destino, int numDestino, String[] origen) {
+        for (String parada : origen) {
+            if (parada != null && !contiene(destino, numDestino, parada)) {
+                if (numDestino < destino.length) {
+                    destino[numDestino++] = parada;
+                } else {
+                    break;  // Evita desbordamiento si el arreglo destino está lleno
+                }
+            }
+        }
+        return numDestino;
+    }
+
+    /**
+    * Filtra las paradas cubiertas no nulas.
+    */
+    private String[] filtrarParadasCubiertas(String[] paradas, int size) {
+        String[] resultado = new String[size];
+        int indexResultado = 0;
+
+        for (int i = 0; i < size; i++) {
+            if (paradas[i] != null && !contiene(resultado, indexResultado, paradas[i])) {
+                resultado[indexResultado++] = paradas[i].toLowerCase(); // Normaliza mayúsculas/minúsculas
+            }
+        }
+
+        // Ajustar el tamaño del arreglo final para devolver solo los elementos válidos
+        String[] paradasFiltradas = new String[indexResultado];
+        System.arraycopy(resultado, 0, paradasFiltradas, 0, indexResultado);
+
+        return paradasFiltradas;
+    }
+    
+    /**
+    * Verifica si un valor está presente en el arreglo hasta cierto tamaño.
+    * 
+    * @param array Arreglo en el que se busca el valor.
+    * @param size Tamaño efectivo del arreglo a revisar.
+    * @param value Valor a buscar.
+    * @return True si el valor está presente, false en caso contrario.
+    */
+    private boolean contiene(String[] array, int size, String value) {
+        for (int i = 0; i < size; i++) {
+            if (array[i] != null && array[i].equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     
 
     public void mostrarGrafo() {

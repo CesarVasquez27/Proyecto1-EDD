@@ -104,32 +104,35 @@ public class GrafoMenu extends JFrame {
         });
 
         btnAgregarSucursal.addActionListener(e -> {
-            String[] options = {"Agregar", "Des-seleccionar"};
-            int seleccion = JOptionPane.showOptionDialog(
-                null,
-                "¿Qué desea hacer?",
-                "Agregar o Des-seleccionar Parada",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0] // Opción por defecto
-            );
+        String[] options = {"Agregar", "Des-seleccionar"};
+        int seleccion = JOptionPane.showOptionDialog(
+            null,
+            "¿Qué desea hacer?",
+            "Agregar o Des-seleccionar Parada",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]  // Opción por defecto
+        );
 
-            if (seleccion == 0) { // Opción "Agregar"
-                String parada = JOptionPane.showInputDialog("Ingrese el nombre de la parada para la nueva sucursal:");
-                if (parada != null) {
-                    grafo.colocarSucursal(parada); // Llama al método para agregar la sucursal
-                    mostrarMensaje("Sucursal agregada: " + parada);
-                }
-            } else if (seleccion == 1) { // Opción "Des-seleccionar"
-                String parada = JOptionPane.showInputDialog("Ingrese el nombre de la parada a des-seleccionar:");
-                if (parada != null) {
-                    grafo.quitarSucursal(parada); // Llama al método para quitar la sucursal
-                    mostrarMensaje("Sucursal des-seleccionada: " + parada);
-                }
+        if (seleccion == 0) { // Opción "Agregar"
+            String parada = JOptionPane.showInputDialog("Ingrese el nombre de la parada para la nueva sucursal:");
+            if (parada != null && !parada.isBlank()) {
+                grafo.colocarSucursal(parada);  // Llama al método para agregar la sucursal
+            } else {
+                mostrarError("El nombre de la parada no puede estar vacío.");
             }
+        } else if (seleccion == 1) { // Opción "Des-seleccionar"
+            String parada = JOptionPane.showInputDialog("Ingrese el nombre de la parada a des-seleccionar:");
+            if (parada != null && !parada.isBlank()) {
+                grafo.quitarSucursal(parada);  // Llama al método para quitar la sucursal
+            } else {
+                mostrarError("El nombre de la parada no puede estar vacío.");
+            }
+        }
     });
+
 
 
         btnAgregarLinea.addActionListener(e -> {
@@ -143,14 +146,21 @@ public class GrafoMenu extends JFrame {
         });
 
         btnRevisarCobertura.addActionListener(e -> {
-            if (grafo != null) {
-                String cobertura = grafo.revisarCoberturaTotal();
-                textAreaCobertura.setText(cobertura);
-            } else {
+        try {
+            if (grafo == null) {
                 mostrarError("El grafo no está inicializado.");
+                return;
             }
+        
+            String cobertura = grafo.revisarCoberturaTotal();
+            textAreaCobertura.setText(cobertura);
+        
+        } catch (Exception ex) {
+            mostrarError("Ocurrió un error al revisar la cobertura: " + ex.getMessage());
+        }
         });
     }
+
 
     /**
     * Muestra el grafo en el panel correspondiente.
