@@ -104,12 +104,33 @@ public class GrafoMenu extends JFrame {
         });
 
         btnAgregarSucursal.addActionListener(e -> {
-            String parada = JOptionPane.showInputDialog("Ingrese el nombre de la parada para la nueva sucursal:");
-            if (parada != null) {
-                grafo.colocarSucursal(parada);
-                mostrarMensaje("Sucursal agregada: " + parada);
+            String[] options = {"Agregar", "Des-seleccionar"};
+            int seleccion = JOptionPane.showOptionDialog(
+                null,
+                "¿Qué desea hacer?",
+                "Agregar o Des-seleccionar Parada",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0] // Opción por defecto
+            );
+
+            if (seleccion == 0) { // Opción "Agregar"
+                String parada = JOptionPane.showInputDialog("Ingrese el nombre de la parada para la nueva sucursal:");
+                if (parada != null) {
+                    grafo.colocarSucursal(parada); // Llama al método para agregar la sucursal
+                    mostrarMensaje("Sucursal agregada: " + parada);
+                }
+            } else if (seleccion == 1) { // Opción "Des-seleccionar"
+                String parada = JOptionPane.showInputDialog("Ingrese el nombre de la parada a des-seleccionar:");
+                if (parada != null) {
+                    grafo.quitarSucursal(parada); // Llama al método para quitar la sucursal
+                    mostrarMensaje("Sucursal des-seleccionada: " + parada);
+                }
             }
-        });
+    });
+
 
         btnAgregarLinea.addActionListener(e -> {
             String nombreLinea = JOptionPane.showInputDialog("Ingrese el nombre de la nueva línea:");
