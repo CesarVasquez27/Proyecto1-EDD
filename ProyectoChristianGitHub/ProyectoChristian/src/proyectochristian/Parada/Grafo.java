@@ -23,6 +23,7 @@ import proyectochristian.Sucursal.ListaConexion;
 import proyectochristian.Sucursal.ListaSucursal;
 import proyectochristian.Sucursal.NodoConexion;
 import proyectochristian.Sucursal.NodoSucursal;
+import javax.swing.JOptionPane;
 
 public class Grafo {
     private ListaParada listaParadas;  // Lista de paradas
@@ -143,27 +144,78 @@ public class Grafo {
      * @param nombreParada Nombre de la parada donde se coloca la sucursal.
      */
     public void colocarSucursal(String nombreParada) {
-        listaSucursales.agregar(nombreParada);
-        System.out.println("Sucursal colocada en: " + nombreParada);
+    // Verificar si la parada existe
+    if (!existeParada(nombreParada)) {
+        JOptionPane.showMessageDialog(null, 
+            "Esta parada no existe", 
+            "Error", 
+            JOptionPane.ERROR_MESSAGE);
+        return;
     }
+    
+    // Verificar si ya existe una sucursal en esta parada
+    if (listaSucursales.buscarSucursal(nombreParada) != null) {
+        JOptionPane.showMessageDialog(null, 
+            "Ya hay una sucursal aquí", 
+            "Advertencia", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // Si pasa las validaciones, agregar la sucursal
+    listaSucursales.agregar(nombreParada);
+    JOptionPane.showMessageDialog(null, 
+        "Sucursal colocada exitosamente en: " + nombreParada, 
+        "Éxito", 
+        JOptionPane.INFORMATION_MESSAGE);
+}
 
-    /**
-     * Elimina una sucursal de una parada específica.
-     * @param nombreParada Nombre de la parada donde se elimina la sucursal.
-     */
-    public void quitarSucursal(String nombreParada) {
-        // Eliminar de la lista de paradas
-        listaParadas.eliminar(nombreParada);
-        
-        // Verificar si la parada es una sucursal, y eliminarla también de la lista de sucursales
-        if (listaSucursales.buscarSucursal(nombreParada) != null) {
-            listaSucursales.eliminar(nombreParada);
-            System.out.println("Parada " + nombreParada + " eliminada como sucursal.");
-        } else {
-            System.out.println("Parada " + nombreParada + " eliminada, no es una sucursal.");
+/**
+ * Verifica si una parada existe en la red de transporte.
+ * @param nombreParada Nombre de la parada a verificar
+ * @return true si la parada existe, false en caso contrario
+ */
+private boolean existeParada(String nombreParada) {
+    NodoParada actual = listaParadas.getpFirst();
+    while (actual != null) {
+        if (actual.getNombreParada().equalsIgnoreCase(nombreParada)) {
+            return true;
         }
+        actual = actual.getpNext();
     }
+    return false;
+}
 
+/**
+ * Elimina una sucursal de una parada específica.
+ * @param nombreParada Nombre de la parada donde se elimina la sucursal.
+ */
+public void quitarSucursal(String nombreParada) {
+    // Verificar si la parada existe
+    if (!existeParada(nombreParada)) {
+        JOptionPane.showMessageDialog(null, 
+            "Esta parada no existe", 
+            "Error", 
+            JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Verificar si hay una sucursal para quitar
+    if (listaSucursales.buscarSucursal(nombreParada) == null) {
+        JOptionPane.showMessageDialog(null, 
+            "No hay sucursal para quitar en esta parada", 
+            "Advertencia", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // Si existe la sucursal, quitarla
+    listaSucursales.eliminar(nombreParada);
+    JOptionPane.showMessageDialog(null, 
+        "Sucursal eliminada exitosamente de: " + nombreParada, 
+        "Éxito", 
+        JOptionPane.INFORMATION_MESSAGE);
+}
     /**
      * Verifica la cobertura de una sucursal mediante DFS o BFS.
      * @param nombreParada Nombre de la parada base.
